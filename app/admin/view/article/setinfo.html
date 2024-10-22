@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		<link rel="stylesheet" href="/admin/css/up_img.css">
+	</head>
+	<body>
+		<div id="app_con"  style="padding:15px">
+			<el-page-header @back="goBack" content="编辑">
+			</el-page-header>
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+				<el-form-item label="标题">
+					<el-input v-model="form.title" placeholder="标题"></el-input>
+				</el-form-item>
+				<el-form-item label="分类">
+					<el-select v-model="form.ac_id" placeholder="请选择分类">
+						<el-option
+							v-for="item in article_classify_list"
+							:key="item.ac_id"
+							:label="item.name"
+							:value="item.ac_id">
+						  </el-option>
+					  </el-select>
+				</el-form-item>
+				<el-form-item label="图片">
+					<el-upload
+						class="avatar-uploader"
+						action="/admin/Upload/saveFile?key=pic"
+						:show-file-list="false"
+						:on-success="handleAvatarSuccess">
+					<img v-if="form.pic" :src="form.pic" class="avatar">
+					<i v-else class="el-icon-plus avatar-uploader-icon"></i>
+					</el-upload>
+					<tip>320*320</tip>
+				</el-form-item>
+				<el-form-item  label="内容">
+					<textarea id="a_con">{{form.a_con}}</textarea>
+				</el-form-item>
+				<el-form-item label="是否显示">
+					<el-switch v-model="form.is_show"
+					active-value="1"
+    				inactive-value="0"
+					active-text="显示"
+  					inactive-text="不显示"
+					active-color="#13ce66"
+					inactive-color="#ff4949"
+					></el-switch>
+				</el-form-item>
+				<el-form-item label="排序">
+					<el-input v-model="form.sort" ></el-input>
+				</el-form-item>
+				
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+					<el-button>取消</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+	{:textarea_js('a_con')}
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{:json_encode($editArr)},
+				form_url:'{$form_url}',
+				popoverShow:true,
+				
+				article_classify_list:{:json_encode($article_classify_list)},
+				
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				goBack() {
+					window.history.go(-1)
+				},
+				//上传图片单张
+				handleAvatarSuccess(res, file) {
+					this.form[res.key] = res.location
+				},
+				//上传图片多张
+				handleAvatarSuccessList(res, file,fileList) {
+					this.fileList_sub_update(fileList)
+				},
+				//上传图片多张 -删除图片
+				handleRemove(file, fileList) {
+					this.fileList_sub_update(fileList)
+				},
+				//上传图片多张 -处理提交数据格式 
+				fileList_sub_update(fileList){
+					let g_images = [];
+					for (let index = 0; index < fileList.length; index++) {
+						if(fileList[index].name==undefined){
+							g_images[index] = fileList[index].url;
+						}else{
+							g_images[index] = fileList[index].response.location
+						}
+					}
+					this.form.g_images_sub = g_images
+				},
+				
+				
+				onSubmit() {
+					console.log(this.form);
+					this.form.a_con = $('#a_con').val()
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.history.go(-1)
+							},1000)
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				setIcon(icon) {
+					this.form.icon = icon
+				}
+			}
+		})
+		
+	</script>
+	
+</html>

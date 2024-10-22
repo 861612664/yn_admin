@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		
+	</head>
+	<body>
+		<div id="app_con">
+			<el-page-header @back="goBack" content="编辑">
+			</el-page-header>
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+				<el-form-item label="账号">
+					<el-input v-model="form.name" placeholder="登录时使用的账号"></el-input>
+				</el-form-item>
+				<el-form-item label="名称">
+					<el-input v-model="form.user_name" placeholder="登录后右上角显示的名称"></el-input>
+				</el-form-item>
+				<el-form-item label="密码">
+					<el-input v-model="form.pwd"  placeholder="添加时必填，修改时不填写不修改"></el-input>
+				</el-form-item>
+				<el-form-item label="菜单权限">
+					<el-checkbox-group v-model="form.menu">
+					<div v-for="item in menu">
+						<div style="width: 120px;float: left;text-align: center; font-weight: 700;">
+							<el-checkbox :label="item.id" :key="item.id" :value="item.id">{{item.name}}</el-checkbox>
+						</div>
+						<div style="float:left">
+							<el-checkbox v-for="item2 in item.children"  :label="item2.id" :key="item2.id" :value="item2.id">{{item2.name}}</el-checkbox>
+						</div>
+						<div style="clear: both;"></div>
+					</div>
+				</el-checkbox-group>
+				</el-form-item>
+				<el-form-item label="状态">
+					<el-switch v-model="form.state"
+					active-value="1"
+    				inactive-value="0"
+					active-text="冻结"
+  					inactive-text="正常"
+					active-color="#ff4949"
+					inactive-color="#13ce66"
+					></el-switch>
+				  </el-form-item>
+
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+					<el-button>取消</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{:json_encode($editArr)},
+				form_url:'{$form_url}',
+				popoverShow:true,
+				menu:{:json_encode($menu)},
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				goBack() {
+					window.history.go(-1)
+				},
+				onSubmit() {
+					console.log(this.form);
+					
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.history.go(-1)
+							},1000)
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				setIcon(icon) {
+					this.form.icon = icon
+				}
+			}
+		})
+		
+	</script>
+	
+</html>

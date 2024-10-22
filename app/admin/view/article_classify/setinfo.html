@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		<link rel="stylesheet" href="/admin/css/up_img.css">
+	</head>
+	<body>
+		<div id="app_con"  style="padding:15px">
+			<el-page-header @back="goBack" content="编辑">
+			</el-page-header>
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+				<el-form-item label="分类名称">
+					<el-input v-model="form.name" placeholder="分类名称"></el-input>
+				</el-form-item>
+				
+				<el-form-item label="是否显示">
+					<el-switch v-model="form.is_show"
+					active-value="1"
+    				inactive-value="0"
+					active-text="显示"
+  					inactive-text="不显示"
+					active-color="#13ce66"
+					inactive-color="#ff4949"
+					></el-switch>
+				</el-form-item>
+				<el-form-item label="排序">
+					<el-input v-model="form.sort" ></el-input>
+				</el-form-item>
+				
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+					<el-button>取消</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{:json_encode($editArr)},
+				form_url:'{$form_url}',
+				popoverShow:true,
+				
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				goBack() {
+					window.history.go(-1)
+				},
+				//上传图片单张
+				handleAvatarSuccess(res, file) {
+					this.form[res.key] = res.location
+				},
+				//上传图片多张
+				handleAvatarSuccessList(res, file,fileList) {
+					this.fileList_sub_update(fileList)
+				},
+				//上传图片多张 -删除图片
+				handleRemove(file, fileList) {
+					this.fileList_sub_update(fileList)
+				},
+				//上传图片多张 -处理提交数据格式 
+				fileList_sub_update(fileList){
+					let g_images = [];
+					for (let index = 0; index < fileList.length; index++) {
+						if(fileList[index].name==undefined){
+							g_images[index] = fileList[index].url;
+						}else{
+							g_images[index] = fileList[index].response.location
+						}
+					}
+					this.form.g_images_sub = g_images
+				},
+				
+				
+				onSubmit() {
+					console.log(this.form);
+					
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.history.go(-1)
+							},1000)
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				setIcon(icon) {
+					this.form.icon = icon
+				}
+			}
+		})
+		
+	</script>
+	
+</html>

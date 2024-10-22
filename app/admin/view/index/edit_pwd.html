@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		
+	</head>
+	<body>
+		<div id="app_con" style="padding: 15px;">
+			</el-page-header>
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+				<el-form-item label="原密码">
+					<el-input v-model="form.yuan_pwd" show-password></el-input>
+				</el-form-item>
+				<el-form-item label="新密码">
+					<el-input v-model="form.new_pwd" show-password></el-input>
+				</el-form-item>
+				<el-form-item label="确认密码">
+					<el-input v-model="form.queren_pwd" show-password></el-input>
+				</el-form-item>
+
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{
+					yuan_pwd:'',
+					new_pwd:'',
+					queren_pwd:'',
+				},
+				form_url:'/admin/index/editPwd',
+				popoverShow:true,
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				goBack() {
+					window.history.go(-1)
+				},
+				onSubmit() {
+					console.log(this.form);
+					if(this.form.new_pwd != this.form.queren_pwd){
+						this.$message.error('两次密码不一致');
+					}
+					if(!this.requiredYanzheng(this.form.yuan_pwd)){
+						this.$message.error('请输入原密码');
+						return false;
+					}
+					if(!this.requiredYanzheng(this.form.new_pwd)){
+						this.$message.error('请输入新密码');
+						return false;
+					}
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				requiredYanzheng(e){
+					if (e == '' || e == undefined) {
+						return false;
+					}
+					return true;
+				}
+			}
+		})
+		function getAjax(url) {
+			var data = null;
+			$.ajax({
+				url: url, //json文件路径
+				async: false,
+				success: function (e) { //成功
+					data = e
+				}
+			});
+			return data;
+		}
+	</script>
+	
+</html>

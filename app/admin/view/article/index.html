@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		<style>
+		    .el-col{ margin-bottom:10px}
+		</style>
+	</head>
+	<body>
+		<div id="app_con">
+			
+			<el-card class="box-card">
+				
+				<el-row :gutter='20' style="margin-top: 10px;margin-bottom: 10px;">
+					<el-col :span="4"><el-input size="small" v-model="list_where.title" placeholder="标题"></el-input></el-col>
+					<el-col :span="4"><el-input size="small" v-model="list_where.article_classify.name" placeholder="分类检索"></el-input></el-col>
+					<el-col :span="4">
+    					<el-select size="small" v-model="list_where.ac_id" filterable placeholder="请选择分类" style="width:100%">
+    						<el-option label="请选择" value="0"></el-option>
+    						<el-option
+    							v-for="item in article_classify_list"
+    							:key="item.ac_id"
+    							:label="item.name"
+    							:value="item.ac_id">
+    						</el-option>
+    					</el-select>
+					</el-col>
+					<el-button type="primary" plain icon="el-icon-search" @click="search_list" size="small">搜索</el-button>
+					<el-button type="primary"  icon="el-icon-download" @click="export_list" size="small">导出</el-button>
+				</el-row>
+				
+				<el-row :gutter="20">
+                  <el-col :span="12">
+                      <el-button type="primary" icon="el-icon-plus" size="mini" @click="add_info(0)">添加</el-button>
+                      <el-button v-if="pilian_button"  type="danger" icon="el-icon-delete" size="mini" @click="del_select()">删除选中</el-button>
+                  </el-col>
+                </el-row>
+				<template>
+					<el-table stripe :data="tableData" height="600"  size="small" style="width: 100%" empty-text="暂无数据" 
+					@selection-change="handleSelectionChange">
+					    <el-table-column type="selection" width="50"></el-table-column>
+						<el-table-column prop="id" label="ID" align="center" width="50">
+						</el-table-column>
+						<el-table-column prop="title" label="标题">
+						</el-table-column>
+						<el-table-column prop="pic" label="图片">
+						    <template slot-scope="scope">
+								<el-image style=" height: 50px" :src="scope.row.pic"></el-image>
+							</template>
+						</el-table-column>
+						<el-table-column prop="article_classify.name" label="分类名称">
+						</el-table-column>
+						<el-table-column prop="create_time" label="创建时间"></el-table-column>
+						<el-table-column prop="is_show" label="是否显示">
+							<template slot-scope="scope">
+								<el-tag
+									:type="scope.row.is_show === 1 ? 'success' : 'primary'"
+									disable-transitions>{{scope.row.is_show==1?'显示': '不显示'}}</el-tag>
+							</template>
+						</el-table-column>
+						<el-table-column prop="sort" label="排序"></el-table-column>
+						<el-table-column fixed="right" align="center" label="操作" width="200">
+							<template slot-scope="scope" v-if="scope.row.menu != 'all'">
+								<el-button @click="add_info(scope.row.id)" type="primary" size="mini">编辑</el-button>
+								<el-button @click="del(scope.$index, tableData,scope.row.id)" type="danger" size="mini">删除</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</template>
+				<!-- 分页 -->
+				<div class="block" style="margin-top: 20px;">
+					<el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage"
+					 :page-sizes="[10, 20, 50, 100]" :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+					</el-pagination>
+				</div>
+			</el-card>
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				currentPage: 1,		//当前第几页
+				pagesize: 10,		//每页显示数量
+				total:0,			//总数
+				list_where:{
+					page:1,
+					limit:10,
+					title:'',
+					ac_id:'',
+					article_classify:{name:''}
+				},
+				list_url:'{$app_name}/{$controller}/getList',		//获取列表url
+				del_url:'{$app_name}/{$controller}/delinfo',		//获取列表url
+				tableData: [],
+				dialogTableVisible: false,
+				multipleSelection:[],
+				pilian_button:false,
+
+				article_classify_list:{:json_encode($article_classify_list)},
+			},
+			created() {
+    			this.getList(1);
+			},
+			methods: {
+				search_list(){
+					console.log(this.list_where)
+					this.getList(1)
+				},
+				export_list(){
+    				let export_url = this.list_url+'?export=1'
+    				$.each(this.list_where, function(key, value) {
+                        export_url = export_url+'&'+key+'='+value
+                    });
+    				window.location.href = export_url
+				},
+				getList(page){
+					this.list_where.page = page;
+					this.list_where.limit = this.pagesize;
+					axios.post(this.list_url, this.list_where).then((res) => {
+						this.total = res.data.total;
+						this.tableData = res.data.data;
+					})
+				},
+				handleClick(row) {
+					console.log(row);
+				},
+				handleSizeChange(val) {
+					console.log(`每页 ${val} 条`);
+					this.pagesize = val
+					this.getList(this.currentPage)
+				},
+				handleCurrentChange(val) {
+					console.log(`当前页: ${val}`);
+					this.currentPage = val
+					this.getList(this.currentPage)
+				},
+				add_info(e){
+					window.location.href="{$app_name}/{$controller}/setinfo?id="+e
+				},
+				del(index, rows, e) { //删除
+					this.$confirm('确定要删除吗?', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'warning'
+					}).then(() => {
+						axios.post(this.del_url, {id:e}).then((res) => {
+							if (res.data.code != 1) {
+								this.getList(this.currentPage)
+								this.$message({
+									type: 'success',
+									message: '删除成功!'
+								});
+							}else{
+								this.$message.error(res.data.msg);
+							}
+						})
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消删除'
+						});
+					});
+				},
+				del_select(){
+				    this.$confirm('确定要删除选中数据吗?', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'warning'
+					}).then(() => {
+						axios.post(this.del_url, {pl:this.multipleSelection}).then((res) => {
+							if (res.data.code != 1) {
+								this.getList(this.currentPage)
+								this.$message({
+									type: 'success',
+									message: '删除成功!'
+								});
+							}else{
+								this.$message.error(res.data.msg);
+							}
+						})
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消删除'
+						});
+					});
+				},
+				handleSelectionChange(val) {
+				    if(val.length>0){
+				        this.pilian_button = true
+				    }else{
+				        this.pilian_button = false
+				    }
+                    this.multipleSelection = val;
+                }
+
+			}
+		})
+	</script>
+</html>

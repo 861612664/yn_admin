@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>后台登录</title>
+		
+		{include file="config/haeder"/}
+	
+		<style>
+			body {
+				background-image: url('../img/login_bg.jpg');
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+				background-attachment:fixed;
+			}
+
+			.form_box {
+				width: 400px;
+				height: 500px;
+				border-radius: 5px;
+				overflow: hidden;
+				/* box-shadow: 10px 6px 50px rgba(0, 0, 0, .2), 0 0 6px rgba(0, 0, 0, .4); */
+				background-color: white;
+				position: absolute;
+				top: 50%;
+				right: 10%;
+				transform: translate(-50%, -50%);
+			}
+			.form_box_left{
+				width: 500px;
+				height: 500px;
+				position: absolute;
+				top: 50%;
+				left: 30%;
+				transform: translate(-50%, -50%);
+				overflow: hidden;
+			}
+
+
+		</style>
+	</head>
+	<body>
+		<div id="yn_login">
+			<div class="form_box">
+				<h1 style="margin-top: 20px; text-align: center;">后台管理系统</h1>
+				<div style="width: 80%;margin-left: 10%;padding-top: 30px;">
+					<el-form :model="ruleForm" :rules="rules" ref="ruleForm" class="ruleForm" status-icon>
+						<el-form-item prop="name">
+							<el-input prefix-icon="el-icon-user" v-model="ruleForm.name" placeholder="请输入用户名"></el-input>
+						</el-form-item>
+						<el-form-item prop="pwd">
+							<el-input prefix-icon="el-icon-lock" v-model="ruleForm.pwd" type="password" placeholder="请输入密码" show-password="true"></el-input>
+						</el-form-item>
+						<el-form-item prop="captcha">
+							<img src="{:captcha_src()}" onClick="this.src=this.src+'?'+Math.random()" style="vertical-align: middle;"/>
+							<el-input prefix-icon="el-icon-lock" v-model="ruleForm.captcha" placeholder="请输入验证码" ></el-input>
+						</el-form-item>
+						<el-form-item>
+							<el-button type="primary" style="width: 100%;font-size: 20px;margin-top: 10px;" @click="submitForm('ruleForm')">登&nbsp;&nbsp;录</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
+			</div>
+		</div>
+		<div style="position: fixed;bottom: 20px;width: 100%;text-align: center;">
+			备案号：{$icp}
+		</div>
+	</body>
+<script>
+var vm = new Vue({
+	el: '#yn_login',
+	data() {
+		return {
+			ruleForm: {
+				name: '',
+				pwd: '',
+				captcha: ''
+			},
+			rules: {
+				name: {
+					required: true,
+					message: '请输入用户名',
+					trigger: 'blur'
+				},
+				pwd: {
+					required: true,
+					message: '请输入密码',
+					trigger: 'blur'
+				},
+				pwd: {
+					required: true,
+					message: '请输入验证码',
+					trigger: 'blur'
+				},
+			},
+
+		}
+	},
+	methods: {
+		submitForm(formName) {
+			this.$refs[formName].validate((valid) => {
+				if (valid) {
+					axios.post("{$app_name}/login/handleLogin", this.ruleForm).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '登录成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.location.href = "{$app_name}/index/index"
+							},1000)
+							
+						}else{
+							this.$message.error(res.data.msg);
+						}
+						
+					})
+				} else {
+					console.log('error submit!!');
+					return false;
+				}
+			});
+		},
+	}
+})
+</script>
+
+</html>

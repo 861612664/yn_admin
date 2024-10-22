@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		<script src="/admin/lib/echarts/dist/echarts.min.js"></script>
+		<style>
+			.grid-content{
+				margin: 5px;
+				padding: 15px;
+				border-radius: 4px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)
+			}
+			.grid-content_hcd_text{
+				color: #fff;
+				line-height: 50px;
+				font-size: 30px;
+			}
+			.grid-content_hcd_text2{
+				color: #fff;
+			}
+			.grid-content_hcd_icon{
+				float: right;
+				margin-top: -70px;
+				color: #fff;
+				font-size: 50px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app_con" style="padding: 15px;">
+			<el-row>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#67C23A;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日订单数</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-goods"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#E6A23C;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日新增用户数</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-user-solid"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#F56C6C;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日平台服务费</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-finance"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#909399;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日提现金额</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-finance"></i>
+						</div>
+					</div>
+				</el-col>
+			</el-row>
+			<el-row>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#67C23A;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日订单数</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-goods"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#E6A23C;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日新增用户数</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-user-solid"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#F56C6C;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日平台服务费</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-finance"></i>
+						</div>
+					</div>
+				</el-col>
+				<el-col :span="6">
+					<div class="grid-content" style="background-color:#909399;">
+						<div class="grid-content_hcd_text">999</div>
+						<div class="grid-content_hcd_text2">今日提现金额</div>
+						<div class="grid-content_hcd_icon">
+							<i class="el-icon-s-finance"></i>
+						</div>
+					</div>
+				</el-col>
+			</el-row>
+			<el-row style="margin-top: 60px;">
+				<el-col :span="12">
+					<div id="myChartzz" style="width: 100%;height:400px;"></div>
+				</el-col>
+				<el-col :span="12">
+					<div id="myChartbb" style="width: 100%;height:400px;"></div>
+				</el-col>
+			</el-row>
+			
+		</div>
+		
+		
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				popoverShow:true,
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			mounted(){
+				this.progressZZ()
+				this.progressBB()
+			},
+			methods: {
+				progressZZ(){
+					var chartDomzz = document.getElementById("myChartzz");
+					var myChartzz = echarts.init(chartDomzz);
+					var option = {
+						title: {
+							text: '7日订单数'
+						},
+						tooltip: {},
+						legend: {
+							data: ['销量']
+						},
+						xAxis: {
+							data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+						},
+						yAxis: {},
+						series: [
+							{
+								name: '销量',
+								type: 'bar',
+								data: [5, 20, 36, 10, 10, 20]
+							}
+						]
+					};
+					option && myChartzz.setOption(option);
+				},
+				progressBB(){
+					var chartDombb = document.getElementById("myChartbb");
+					var myChartbb = echarts.init(chartDombb);
+					var option = {
+						title: {
+							text: '服务项目销量',
+							subtext: '近30天',
+							left: 'center'
+						},
+						tooltip: {
+							trigger: 'item'
+						},
+						legend: {
+							orient: 'vertical',
+							left: 'left'
+						},
+						series: [
+							{
+							name: '销量',
+							type: 'pie',
+							radius: '50%',
+							data: [
+								{ value: 1048, name: 'Search Engine' },
+								{ value: 735, name: 'Direct' },
+								{ value: 580, name: 'Email' },
+								{ value: 484, name: 'Union Ads' },
+								{ value: 300, name: 'Video Ads' }
+							],
+							emphasis: {
+								itemStyle: {
+								shadowBlur: 10,
+								shadowOffsetX: 0,
+								shadowColor: 'rgba(0, 0, 0, 0.5)'
+								}
+							}
+							}
+						]
+					};
+					option && myChartbb.setOption(option);
+				},
+				goBack() {
+					window.history.go(-1)
+				},
+				handleAvatarSuccess(res, file) {
+					this.form[res.key] = res.location
+				},
+				onSubmit() {
+					console.log(this.form);
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.history.go(-1)
+							},1000)
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				
+			}
+		})
+		function getAjax(url) {
+			var data = null;
+			$.ajax({
+				url: url, //json文件路径
+				async: false,
+				success: function (e) { //成功
+					data = e
+				}
+			});
+			return data;
+		}
+	</script>
+	
+</html>

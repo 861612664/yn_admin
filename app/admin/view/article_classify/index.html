@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+	</head>
+	<body>
+		<div id="app_con">
+			
+			<el-card class="box-card">
+				<el-row>
+					<el-button type="primary" icon="el-icon-plus" size="mini" @click="add_info(0)">添加</el-button>
+				</el-row>
+				<template>
+					<el-table stripe :data="tableData" height="600"  size="small" style="width: 100%" empty-text="暂无数据">
+						<el-table-column prop="ac_id" label="ID" align="center" width="100">
+						</el-table-column>
+						<el-table-column prop="name" label="分类名称">
+						</el-table-column>
+						<el-table-column prop="create_time" label="创建时间"></el-table-column>
+						<el-table-column prop="is_show" label="是否显示">
+							<template slot-scope="scope">
+								<el-tag
+									:type="scope.row.is_show === 1 ? 'success' : 'primary'"
+									disable-transitions>{{scope.row.is_show==1?'显示': '不显示'}}</el-tag>
+							</template>
+						</el-table-column>
+						<el-table-column prop="sort" label="排序"></el-table-column>
+						<el-table-column fixed="right" align="center" label="操作" width="200">
+							<template slot-scope="scope" v-if="scope.row.menu != 'all'">
+								<el-button @click="add_info(scope.row.ac_id)" type="primary" size="mini">编辑</el-button>
+								<el-button @click="del(scope.$index, tableData,scope.row.ac_id)" type="danger" size="mini">删除</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</template>
+				<!-- 分页 -->
+				<div class="block" style="margin-top: 20px;">
+					<el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage"
+					 :page-sizes="[10, 20, 50, 100]" :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+					</el-pagination>
+				</div>
+			</el-card>
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				currentPage: 1,		//当前第几页
+				pagesize: 10,		//每页显示数量
+				total:0,			//总数
+				list_where:{
+					page:1,
+					limit:10
+				},
+				list_url:'{$app_name}/{$controller}/getList',		//获取列表url
+				del_url:'{$app_name}/{$controller}/delinfo',		//获取列表url
+				tableData: [],
+				dialogTableVisible: false,
+			},
+			created() {
+    			this.getList(1);
+			},
+			methods: {
+				getList(page){
+					this.list_where.page = page;
+					this.list_where.limit = this.pagesize;
+					axios.post(this.list_url, this.list_where).then((res) => {
+						this.total = res.data.total;
+						this.tableData = res.data.data;
+					})
+				},
+				handleClick(row) {
+					console.log(row);
+				},
+				handleSizeChange(val) {
+					console.log(`每页 ${val} 条`);
+					this.pagesize = val
+					this.getList(this.currentPage)
+				},
+				handleCurrentChange(val) {
+					console.log(`当前页: ${val}`);
+					this.currentPage = val
+					this.getList(this.currentPage)
+				},
+				add_info(e){
+					window.location.href="{$app_name}/{$controller}/setinfo?id="+e
+				},
+				del(index, rows, e) { //删除
+					this.$confirm('确定要删除吗?', '提示', {
+						confirmButtonText: '确定',
+						cancelButtonText: '取消',
+						type: 'warning'
+					}).then(() => {
+						axios.post(this.del_url, {id:e}).then((res) => {
+							if (res.data.code != 1) {
+								this.getList(this.currentPage)
+								this.$message({
+									type: 'success',
+									message: '删除成功!'
+								});
+							}else{
+								this.$message.error(res.data.msg);
+							}
+						})
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消删除'
+						});
+					});
+				}
+
+			}
+		})
+	</script>
+</html>

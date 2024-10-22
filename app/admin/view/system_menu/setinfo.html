@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		
+	</head>
+	<body>
+		<div id="app_con" style="padding:15px">
+			<el-page-header @back="goBack" content="编辑">
+			</el-page-header>
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+				<el-form-item label="菜单名称">
+					<el-input v-model="form.name"></el-input>
+				</el-form-item>
+				<el-form-item label="上级菜单">
+					<el-select v-model="form.pid" placeholder="请选择上级菜单">
+					  <el-option label="无" value="0"></el-option>
+					  <el-option
+						  v-for="item in top_list"
+						  :key="item.id"
+						  :label="item.name"
+						  :value="item.id">
+						</el-option>
+					</el-select>
+				  </el-form-item>
+				<el-form-item label="路由地址">
+					<el-input v-model="form.paths"></el-input>
+					<div style="color: #606266;font-size: 13px;">例：/admin/index/index</div>
+				</el-form-item>
+				<el-form-item
+				label='菜单图标：'
+				prop='icon' style="width: 400px;">
+					<el-popover
+						placement="bottom"
+						width="450"
+						trigger="click"
+						@show="popoverShow">
+						<span slot="reference">
+						<el-input suffix-icon='data-icon' v-model='form.icon' placeholder='请点击选择'>
+						<template slot="append"><i :class="form.icon"/></template>
+						</el-input>
+						</span>
+						<div style="height: 320px;overflow-y:scroll;">
+							<i v-for="item in iconList" :key="item" :class="item" @click="setIcon(item)"
+							style="font-size:20px;margin:10px"></i>
+						</div>
+					</el-popover>
+				</el-form-item>
+
+				<el-form-item label="是否显示">
+					<el-switch v-model="form.is_show"
+					active-value="1"
+    				inactive-value="0"></el-switch>
+				  </el-form-item>
+				<el-form-item label="排序">
+					<el-input v-model="form.sort"></el-input>
+				</el-form-item>
+
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+					<el-button>取消</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+	<script>
+		
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{:json_encode($editArr)},
+				form_url:'{$form_url}',
+				top_list:{:json_encode($topList)},
+				iconList: getAjax('/admin/lib/web/icon.json'),
+				popoverShow:true,
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				goBack() {
+					window.history.go(-1)
+				},
+				onSubmit() {
+					console.log(this.form);
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							setTimeout(function(){
+								window.history.go(-1)
+							},1000)
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				setIcon(icon) {
+					this.form.icon = icon
+				}
+			}
+		})
+		function getAjax(url) {
+			var data = null;
+			$.ajax({
+				url: url, //json文件路径
+				async: false,
+				success: function (e) { //成功
+					data = e
+				}
+			});
+			return data;
+		}
+	</script>
+	
+</html>

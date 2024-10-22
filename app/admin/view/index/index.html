@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>后台管理系统</title>
+<style>
+html, body {padding: 0;margin: 0;width: 100%;height: 100%;}
+#app {width: 100%;height: 100%;display: flex;}
+/* 左侧导航栏 */
+.left-side {width: 200px;position: absolute;top: 0;left: 0;bottom: 0;background-color: #fff;}
+.left-top-box {width: 100%;height: 55px;border-bottom:1px solid #EEEEEE;}
+.left-top-title {width: 100%;font-size: 20px;height: 50px;text-align: center;line-height: 50px;}
+.left-navs-box {width: 200px;bottom: 0;left: 0;top: 56px;position: absolute;overflow: hidden;}
+.el-menu {width: 200px;color: #000;}
+.el-menu-item, .el-submenu__title{height: 50px !important;line-height: 50px !important;}
+.active-menu-item{background-color: #141416 !important;}
+.navs-inner-box {position: absolute;overflow-y: scroll;top: 0;left: 0;bottom: 20px;}
+/* 右测区域 */
+.right-box {height: 100%;background-color: #eee;position: absolute;left: 200px;top: 0;right: 0;min-width: 980px;}
+.right-header {width: 100%;height: 54px;background-color: #fff;display: flex;align-items: center;justify-content: space-between;border-bottom:1px solid #f5f5f5;}
+.right-header-right {display: flex;align-items: center;margin-right: 20px;}
+
+/* 标签栏 */
+.right-tab-box {height: 40px;display: flex;position: relative;max-width: 100%;align-items: center;border-top: 1px solid #DDDFE6;}
+.tab-item-box {width: 100%;height: 30px;margin: 0 15px;display: flex;align-items: center;overflow: hidden;position: relative;z-index: 9;padding: 0 5px;transition: all .5s;-webkit-transition: all .5s;}
+.tab-item-ul {z-index: 11;position: absolute;display: flex;justify-content: space-between;left: 0px;transition: all .5s;-webkit-transition: all .5s;width: max-content;}
+.tab-item {background-color: #fff;width: auto;height: 30px;display: flex;align-items: center;padding: 0 12px;margin: 0 1px;position: relative;cursor: pointer; margin-right: 10px;color: #333;}
+.tab-item-active {color: #01AAED;}
+.tab-item-text {min-width: 45px;font-size: 13px;text-align: center;display: flex;justify-content: center;align-items: center;flex: 1;}
+.tab-item-close {width: 13px;height: 13px;display: flex;align-items: center;justify-content: center;z-index: 999;margin-left: 5px;}
+.tab-item-close:hover {background-color: #01AAED;color: white;border-radius: 2px;}
+
+/* 加载面 */
+.right-contain {position: absolute;right: 0px;left: 0px;top: 90px;bottom: 10px;padding: 8px;min-width: 763px;}
+.el-menu-item.is-active {
+   background-color: #F2F3FF !important;
+}
+</style>
+		{include file="config/haeder"/}
+	</head>
+	<body style="min-width: 980px;">
+		<div id="app" style="display: none;">
+			<!-- 左边 导航栏 -->
+			<div class="left-side">
+				<!-- 顶部标题 -->
+				<div class="left-top-box">
+					<div class="left-top-title" style="color: #242424;font-weight: 700;">后台管理</div>
+				</div>
+				<!-- 导航栏-->
+				<div class="left-navs-box">
+					<div class="navs-inner-box">
+						
+						<el-menu :default-active="id"
+							class=""
+							:collapse="isCollapse"
+							text-color="#242424"
+							active-text-color="#2B5EDC"
+							active-text-color="#fff">
+
+							<div v-for="(item,index) in navs" :key="item.id">
+								<!-- 没有子选项 -->
+								<el-menu-item @click="openTabs(item,'')" v-if="item.have_children!=1" :class="id==item.id?'active-menu-item':''" :index="item.id">
+									<i :class="item.icon"></i>
+									<span slot="title">{{item.title}}</span>
+								</el-menu-item>
+								<!-- 有子选项 -->
+								<el-submenu v-else :index="item.id">
+									<template slot="title"><i :class="item.icon"></i>&nbsp;{{item.title}}</template>
+									<el-menu-item v-for="(item2,index) in item.children" @click="openTabs(item2,item.title)" :key="item2.id" :class="id==item2.id?'active-menu-item':''" :index="item2.id">
+										<i :class="item2.icon"></i>
+										{{item2.title}}
+									</el-menu-item>
+								</el-submenu>
+							</div>
+						</el-menu>
+
+					</div>
+				</div>
+			</div>
+			<!-- /左边 导航栏 -->
+
+			<!-- 右边区域 -->
+			<div class="right-box">
+				<!-- 顶部栏 -->
+				<div class="right-header">
+					<div>
+						<!-- 左侧显示内容 -->
+						<div style="margin-left: 30px;">
+							<el-breadcrumb separator="/">
+								<el-breadcrumb-item v-for="(item,index) in breadcrumb">{{item.text}}</el-breadcrumb-item>
+							</el-breadcrumb>
+						</div>
+					</div>
+					<div class="right-header-right">
+						<el-tooltip class="item" effect="dark" content="刷新当前页" placement="bottom">
+							<i class="el-icon-refresh-right" style="margin-right: 30px;font-size: 20px;color: #999;" @click="break_page"></i>
+						</el-tooltip>
+						<el-tooltip class="item" effect="dark" :content="quanping_text" placement="bottom">
+							<i class="el-icon-full-screen" style="margin-right: 30px;font-size: 18px;color: #999;" @click="toggleFullScreen"></i>
+						</el-tooltip>
+						
+						<el-dropdown :show-timeout=100 @command="personCommand">
+							<span>
+								<i class="el-icon-user" style="margin-right: 5px;"></i>{$adminInfo['user_name']}<i class="el-icon-arrow-down el-icon--right"></i>
+							</span>
+							<el-dropdown-menu slot="dropdown">
+								<el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+							</el-dropdown-menu>
+						</el-dropdown>
+					</div>
+
+				</div>
+				
+				<div class="right-tab-box">
+					
+					<div class="tab-item-box">
+						<div class="tab-item-ul">
+							<div class="tab-item" @click="indexTab" :class="welcome?'tab-item-active':''">
+								<div class="tab-item-text">控制台</div>
+							</div>
+							<div class="tab-item" @click="tabActive(item)" :id="item.id" :class="id==item.id?'tab-item-active':''" v-for="(item,index) in tabs">
+								<div class="tab-item-text">{{item.data.title}}</div>
+								<i @click.stop="tabClose(item)" class="el-icon-close tab-item-close"></i>
+							</div>
+						</div>
+					</div>
+					
+					
+				</div>
+
+				<!-- 内容区域 iframe -->
+				<div class="right-contain">
+					<!-- <iframe :src="yn_con.href" frameborder="0" scrolling="yes" width="100%" height="100%" ref="yn-iframe">
+					</iframe> -->
+					<iframe src="{$app_name}/index/welcome" frameborder="0" scrolling="yes" width="100%" height="100%" v-show="welcome">
+					</iframe>
+					<template v-for="(item,index) in tabs">
+						<iframe :src="item.data.href" frameborder="0" scrolling="yes" width="100%" height="100%" v-show="id==item.id" :ref="'tab-iframe-'+item.id">
+						</iframe>
+					</template>
+				</div>
+
+				
+			</div>
+			<!-- /右边区域 -->
+		</div>
+
+	</body>
+</html>
+<script>
+
+//加载页面 
+$(document).ready(function () {
+	$('#app').css('display', 'block')
+})
+
+var vm = new Vue({
+	el: '#app',
+	data: {
+		isCollapse: false,
+		navs: {:json_encode($menu)},
+		quanping_text:'全屏',
+		breadcrumb:[
+			{text:'控制台'},
+		],
+
+		//标签
+		welcome: true,
+		tabs: [],
+		id: '0',
+		activeIndex: 0,
+	},
+
+	methods: {
+		indexTab: function () { //控制台 欢迎页面 tab事件
+			this.welcome = true
+			this.id = '0'
+			this.activeIndex = '0'
+			$('.tab-item-ul').css("left", 0)
+			this.breadcrumb = [{text:'控制台'}]
+		},
+		openTabs: function (e,fuji) { //打开页面 加载显示tabs
+			//this.yn_con=e
+			if(fuji==''){
+				//一级菜单
+				this.breadcrumb = [
+					{text:e.title},
+				];
+			}else{
+				//二级菜单	
+				this.breadcrumb = [
+					{text:fuji},
+					{text:e.title},
+				];
+			}
+
+			this.welcome = false
+			var tabs = this.tabs
+			if (this.tabs.length == 0) {
+				this.tabs.push({ id: e.id, data: e })
+				this.id = e.id
+				this.item = e
+			} else {
+				var back = checkTab(e.id)
+				if (back == 1) { //插入
+					if(this.tabs.length==8){
+						//清除数组第一个值，再追加
+						this.tabs.splice(0, 1);
+					}
+					this.tabs.push({ id: e.id, data: e })
+					this.id = e.id
+					this.item = e
+				} else { //已打开
+					this.id = e.id;
+					this.item = e
+				}
+			}
+		},
+		//刷新当前tab
+		break_page: function(){
+			const iframe = this.$refs['tab-iframe-'+this.id];
+    		iframe[0].contentWindow.location.reload(true);
+		},
+		//点击tab显示页面 并改变颜色 调整距离
+		tabActive: function (e) {
+			this.welcome = false
+			this.id = e.id;
+			this.item = e.data
+			this.activeIndex = e.id
+			this.breadcrumb = e.data.breadcrumb
+		},
+		//tabs关闭事件
+		tabClose: function (e) {
+			closeTabThis(e.id)
+		},
+		
+		
+		notice: function () { //公告
+			// layer.msg('公告')
+			layer.open({
+				type: 1,
+				title: '系统公告',
+				content: $('#notice'),
+				area: ['300px', 'auto'],
+				btn: '知道啦',
+				btnAlign: 'c' //按钮居中
+			});
+		},
+		
+		// 个人信息操作
+		personCommand(e){
+			 switch(e){
+				 case 'center': this.$message("个人中心");break;
+				 case 'logout': 
+				 this.$confirm('确定退出登录吗?', '提示', {
+				           confirmButtonText: '确定',
+				           cancelButtonText: '取消',
+				           type: 'warning'
+				         }).then(() => {
+							axios.post('{$app_name}/index/quit', {id:e}).then((res) => {
+								if (res.data.code != 1) {
+									this.$message({
+										message: '操作成功',
+										type: 'success'
+									});
+									setTimeout(function(){
+										window.location.href="/"
+									},1000)
+								}else{
+									this.$message.error(res.data.msg);
+								}
+							})
+				         }).catch(() => {
+				           //this.$message({  type: 'info', message: '已取消退出' });          
+				         });
+				 break;
+			 }
+		},
+		toggleFullScreen() {
+			if (!document.fullscreenElement) {
+				this.enterFullScreen();
+				this.quanping_text = '取消全屏'
+			} else {
+				this.exitFullScreen();
+				this.quanping_text = '全屏'
+			}
+		},
+		enterFullScreen() {
+			let element = document.documentElement;
+			if (element.requestFullscreen) {
+				element.requestFullscreen();
+			} else if (element.mozRequestFullScreen) { /* Firefox */
+				element.mozRequestFullScreen();
+			} else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+				element.webkitRequestFullscreen();
+			} else if (element.msRequestFullscreen) { /* IE/Edge */
+				element.msRequestFullscreen();
+			}
+		},
+		exitFullScreen() {
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.mozCancelFullScreen) { /* Firefox */
+				document.mozCancelFullScreen();
+			} else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+				document.webkitExitFullscreen();
+			} else if (document.msExitFullscreen) { /* IE/Edge */
+				document.msExitFullscreen();
+			}
+		}	
+	},
+
+})
+
+// 关闭当前tab标签  --> 下拉点击事件、tab X按键关闭事件
+function closeTabThis(id) {
+	var tabs = vm.tabs
+	var i = 0;
+	var len = vm.tabs.length - 2
+	if (id == 0) {
+		layer.msg('这个不能关闭的哦')
+		return
+	}
+	for (i; i < tabs.length; i++) { //找到id在tabs数组中的位置 下标
+		// console.log(tabs[i].id)
+		if (tabs[i].id == id) {
+			break;
+		}
+	}
+	// console.log(i)
+	vm.tabs.splice(i, 1) //从tabs中移除
+
+	if (tabs.length == 0) { //如果tabs没有数据，将控制台设置变色
+		vm.welcome = true
+		vm.id = '0'
+	} else {
+		if (tabs[len].id != vm.id) { //判断tabs数组中最后一组数据的id是否为当前的id，若不是则设置
+			vm.id = tabs[len].id
+			vm.item = tabs[len].data
+		}
+	}
+}
+
+function checkTab(id) { //检查tabs是否已经打开
+	var i = 0;
+	var back = 0
+	var tabs = vm.tabs
+	for (i; i < tabs.length; i++) {
+		if (tabs[i].id == id) {
+			back = 0
+			break //找到id 中断循环
+		} else {
+			back = 1
+		}
+	}
+	return back
+}
+
+// ajax 获取数据
+function getAjax(url) {
+	var data = null;
+	$.ajax({
+		url: url, //json文件路径
+		async: false,
+		success: function (e) { //成功
+			console.log(e)
+			data = e
+		}
+	});
+	return data;
+}
+
+</script>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		{include file="config/haeder"/}
+		<link rel="stylesheet" href="/admin/css/up_img.css">
+	</head>
+	<body>
+		<div id="app_con" style="padding:15px">
+			<el-form ref="form" :model="form" label-width="120px"  style="width: 80%;margin:30px">
+			    <el-tabs>
+                    <el-tab-pane v-for="lanmu in type_arr" :label="lanmu.title">
+                        <div v-for="item in form" v-if="lanmu.id == item.type_id">
+
+        					<el-form-item v-if="item.type==1" :label="item.title">
+        						<el-input v-model="item.value" :placeholder="item.tip"></el-input>
+								<tip>变量:{{item.key}}</tip>
+        					</el-form-item>
+        					<el-form-item  v-if="item.type==2" :label="item.title">
+        						<el-switch v-model="item.value"
+        						active-value="1"
+        						inactive-value="0"
+        						active-text="是"
+        						  inactive-text="否"
+        						active-color="#13ce66"
+        						inactive-color="#ff4949"
+        						></el-switch>
+        						<tip>{{item.tip}}</tip>
+								<tip>变量:{{item.key}}</tip>
+        					</el-form-item>
+        
+        					<el-form-item v-if="item.type==3" :label="item.title">
+        						<el-upload
+        							class="avatar-uploader"
+        							:action="'/admin/Upload/saveFile?key='+item.key"
+        							:show-file-list="false"
+        							:on-success="handleAvatarSuccess">
+        						<img v-if="item.value" :src="item.value" class="avatar">
+        						<i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        						</el-upload>
+								<tip>变量:{{item.key}}</tip>
+        					</el-form-item>
+        
+        					<el-form-item v-if="item.type==4" :label="item.title">
+        						<el-input type="textarea" rows="3" v-model="item.value" :placeholder="item.tip"></el-input>
+								<tip>变量:{{item.key}}</tip>
+        					</el-form-item>
+        					
+        					<el-form-item v-if="item.type==5" :label="item.title">
+        						<textarea :id="item.key">{{item.value}}</textarea>
+								<tip>变量:{{item.key}}</tip>
+        					</el-form-item>
+        
+        				</div>
+                        
+                    </el-tab-pane>
+                </el-tabs>
+			
+				<el-form-item>
+					<el-button type="primary" @click="onSubmit">提交</el-button>
+					<el-button>取消</el-button>
+				</el-form-item>
+			</el-form>
+			
+		</div>
+	</body>
+
+	{volist name="$editArr" id="item"}
+	{if $item['type'] == 5}
+		{:textarea_js($item['key'])}
+	{/if}
+	{/volist}
+	<script type="module">
+		//import { Editor } from '/admin/lib/@wangeditor/editor-for-vue/dist/index.js'
+		//import { Editor, Toolbar } from '/admin/lib/@wangeditor/editor-for-vue'
+		var vm = new Vue({
+			el: "#app_con",
+			data: {
+				form:{:json_encode($editArr)},
+				form_url:'{$form_url}',
+				popoverShow:true,
+				ceshi:'测试',
+				
+				type_arr:{:json_encode($type_arr)},
+			},
+			created() {
+				//初始化
+				console.log(this.form)
+			},
+			methods: {
+				ceshi_edit(e){
+					console.log(e)
+				},
+				goBack() {
+					window.history.go(-1)
+				},
+				handleAvatarSuccess(res, file) {
+					for(let i=0;i<this.form.length;i++){
+						if(this.form[i].key==res.key){
+							this.form[i].value = res.location
+						}
+					}
+				},
+				onSubmit() {
+					console.log(this.form);
+					for(let i=0;i<this.form.length;i++){
+						if(this.form[i].type==5){
+							this.form[i].value = $('#'+this.form[i].key).val()
+						}
+					}
+					
+					axios.post(this.form_url, this.form).then((res) => {
+						if (res.data.code != 1) {
+							this.$message({
+								message: '操作成功',
+								type: 'success'
+							});
+							
+						}else{
+							this.$message.error(res.data.msg);
+						}
+					})
+				},
+				setIcon(icon) {
+					this.form.icon = icon
+				}
+			}
+		})
+		
+	</script>
+	
+</html>
